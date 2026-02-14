@@ -92,61 +92,74 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
       const margin = 20;
       let y = 20;
 
-      // Header Rebranded
+      // Helper to clean emojis (jsPDF standard fonts don't support them)
+      const cleanText = (text: string) => {
+        return text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '');
+      };
+
+      // Header Rebranded - Centered
       pdf.setFontSize(24);
       pdf.setTextColor(79, 70, 229); // Indigo 600
-      pdf.text('OportuniA IA - Reporte de Negocio', margin, y);
+      pdf.text('OportuniA IA', pageWidth / 2, y, { align: 'center' });
+      y += 10;
+
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 116, 139); // Slate 500
+      pdf.text('REPORTE ESTRATÉGICO DE NEGOCIO', pageWidth / 2, y, { align: 'center' });
       y += 15;
 
-      // Title
-      pdf.setFontSize(18);
+      // Title - Centered
+      pdf.setFontSize(20);
       pdf.setTextColor(15, 23, 42); // Slate 900
-      pdf.text(opportunity.title, margin, y);
-      y += 10;
+      pdf.text(cleanText(opportunity.title), pageWidth / 2, y, { align: 'center' });
+      y += 15;
 
       // Overview
       pdf.setFontSize(12);
       pdf.setTextColor(71, 85, 105); // Slate 600
-      const splitDesc = pdf.splitTextToSize(opportunity.description, pageWidth - margin * 2);
+      const splitDesc = pdf.splitTextToSize(cleanText(opportunity.description), pageWidth - margin * 2);
       pdf.text(splitDesc, margin, y);
-      y += (splitDesc.length * 7) + 10;
+      y += (splitDesc.length * 7) + 12;
 
-      // Strategy
+      // Strategy Section
+      pdf.setFillColor(248, 250, 252); // Slate 50
+      pdf.roundedRect(margin - 5, y - 5, pageWidth - (margin * 2) + 10, 40, 3, 3, 'F');
+
       pdf.setFontSize(14);
       pdf.setTextColor(15, 23, 42);
       pdf.text('Estrategia de Crecimiento', margin, y);
       y += 8;
       pdf.setFontSize(11);
       pdf.setTextColor(71, 85, 105);
-      const splitStrategy = pdf.splitTextToSize(opportunity.marketingStrategy, pageWidth - margin * 2);
+      const splitStrategy = pdf.splitTextToSize(cleanText(opportunity.marketingStrategy), pageWidth - margin * 2);
       pdf.text(splitStrategy, margin, y);
-      y += (splitStrategy.length * 6) + 15;
+      y += (splitStrategy.length * 6) + 20;
 
-      // Data summary
+      // Financial Data - Boxed or Highlighted
       pdf.setFontSize(14);
       pdf.setTextColor(15, 23, 42);
       pdf.text('Datos Financieros', margin, y);
       y += 8;
-      pdf.setFontSize(11);
-      pdf.text(`Inversión Inicial: ${opportunity.initialInvestment.toLocaleString()}`, margin, y);
-      y += 6;
+      pdf.setFontSize(12);
+      pdf.setTextColor(16, 185, 129); // Emerald 500
+      pdf.text(`Inversión Inicial: $${opportunity.initialInvestment.toLocaleString()}`, margin, y);
+      y += 7;
       pdf.text(`Retorno Esperado (ROI): ${opportunity.expectedROI}`, margin, y);
       y += 15;
 
-      // MARKETING CONTENT (Ventas Viral) - NEW
+      // MARKETING CONTENT (Ventas Viral)
       if (marketingContent) {
-        if (y > 240) { pdf.addPage(); y = 20; }
+        if (y > 220) { pdf.addPage(); y = 20; }
 
         pdf.setFontSize(16);
-        pdf.setTextColor(16, 185, 129); // Emerald 500
+        pdf.setTextColor(79, 70, 229); // Indigo 600
         pdf.text('Guion de Ventas Viral (IA)', margin, y);
         y += 10;
 
         pdf.setFontSize(10);
         pdf.setTextColor(30, 41, 59); // Slate 800
-        const splitMarketing = pdf.splitTextToSize(marketingContent, pageWidth - margin * 2);
+        const splitMarketing = pdf.splitTextToSize(cleanText(marketingContent), pageWidth - margin * 2);
 
-        // Handle pagination for marketing content
         splitMarketing.forEach((line: string) => {
           if (y > 275) {
             pdf.addPage();
@@ -157,9 +170,20 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
         });
       }
 
+      // Footer
+      const pageCount = (pdf as any).internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(148, 163, 184); // Slate 400
+        pdf.text(`© 2026 OportuniA IA - Generado el ${new Date().toLocaleDateString()}`, pageWidth / 2, 285, { align: 'center' });
+        pdf.text(`Página ${i} de ${pageCount}`, pageWidth - 20, 285, { align: 'right' });
+      }
+
       pdf.save(`OportuniA_${opportunity.title.replace(/\s+/g, '_')}.pdf`);
     } catch (e) {
       console.error(e);
+      alert("Error al generar el PDF. Revisa la consola.");
     } finally {
       setIsExporting(false);
     }
