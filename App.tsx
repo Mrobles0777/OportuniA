@@ -109,6 +109,13 @@ const App: React.FC = () => {
     }
   };
 
+  // Efecto para asegurar que el monto de búsqueda no exceda el nuevo saldo tras invertir
+  useEffect(() => {
+    if (user && investment > user.availableInvestment) {
+      setInvestment(user.availableInvestment);
+    }
+  }, [user?.availableInvestment]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };

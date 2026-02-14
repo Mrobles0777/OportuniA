@@ -45,42 +45,42 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
 
   const handleSaveOpportunity = async () => {
     if (!user) {
-      alert("Debes iniciar sesión para guardar.");
+      alert("Debes iniciar sesión para ejecutar esta acción.");
       return;
     }
 
     if (!hasEnoughBudget) {
-      alert("No tienes suficiente capital de inversión para este negocio.");
+      alert("No tienes suficiente saldo disponible para esta inversión.");
       return;
     }
 
-    console.log("Starting handleSaveOpportunity...");
     setIsSaving(true);
     try {
-      // 1. Guardar la oportunidad
-      console.log("Saving opportunity...");
+      // 1. Guardar la oportunidad en la base de datos
       await saveUserOpportunity(user.id, opportunity);
 
-      // 2. Calcular y actualizar el nuevo presupuesto del usuario
+      // 2. Calcular y actualizar el nuevo saldo
       const newInvestment = user.availableInvestment - opportunity.initialInvestment;
-      console.log("Updating user profile with new investment:", newInvestment);
+
       const updatedUser = await updateUserProfile(user.id, {
         availableInvestment: newInvestment
       });
 
-      // 3. Notificar a la app el cambio de usuario
-      console.log("Updating app user state...");
+      // 3. Notificar a la aplicación para actualizar el estado global y la UI
       onUpdateUser(updatedUser);
 
       setSaveSuccess(true);
-      console.log("Save operation completed successfully!");
-      setTimeout(() => setSaveSuccess(false), 3000);
+
+      // Feedback visual extendido antes de que el usuario cierre el modal
+      setTimeout(() => {
+        // Podríamos cerrar el modal automáticamente o dejar que el usuario vea el éxito
+      }, 2000);
+
     } catch (error: any) {
-      console.error("Error al guardar y descontar inversión:", error);
-      alert(`Error al procesar la inversión: ${error.message || 'Error desconocido'}`);
+      console.error("Error en la transacción:", error);
+      alert(`Error al procesar la inversión: ${error.message || 'Error de conexión con el servidor'}`);
     } finally {
       setIsSaving(false);
-      console.log("End of handleSaveOpportunity flow.");
     }
   };
 
