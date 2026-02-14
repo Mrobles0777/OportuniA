@@ -133,10 +133,10 @@ const App: React.FC = () => {
             className="flex items-center gap-2 cursor-pointer"
             onClick={() => setView('main')}
           >
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-200">
               <TrendingUp className="text-white w-6 h-6" />
             </div>
-            <h1 className="text-xl font-bold text-slate-800 hidden md:block">NextVentures IA 2026</h1>
+            <h1 className="text-xl font-black bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent hidden md:block">OportuniA</h1>
           </div>
 
           <div className="flex items-center gap-3">
@@ -191,51 +191,51 @@ const App: React.FC = () => {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
             <div className="max-w-4xl mx-auto relative z-10">
-              <h2 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight tracking-tight">
-                Escala tu Capital con IA
+              <h2 className="text-4xl md:text-7xl font-black text-white mb-4 leading-tight tracking-tight px-2">
+                OportuniA <span className="text-indigo-300">IA</span>
               </h2>
-              <p className="text-indigo-100 text-lg md:text-xl mb-12 font-medium max-w-2xl mx-auto">
-                Analizamos tendencias reales para decirte exactamente qué vender según tu presupuesto.
+              <p className="text-indigo-100 text-base md:text-xl mb-10 font-medium max-w-2xl mx-auto px-6 opacity-90">
+                Analizamos tendencias reales para decirte exactamente qué vender en 2026 según tu presupuesto.
               </p>
 
               {user && (
-                <div className="mb-6 inline-flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 px-6 py-3 rounded-2xl animate-in fade-in zoom-in">
+                <div className="mb-8 inline-flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/20 px-5 py-2.5 rounded-2xl animate-in fade-in zoom-in">
                   <div className="flex items-center gap-2 text-white">
-                    <Wallet className="w-5 h-5 text-indigo-300" />
-                    <span className="text-xs font-black uppercase tracking-widest">Saldo Disponible:</span>
-                    <span className="text-lg font-black text-emerald-400">${user.availableInvestment.toLocaleString()}</span>
+                    <Wallet className="w-4 h-4 text-indigo-300" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Saldo:</span>
+                    <span className="text-base font-black text-emerald-400">${user.availableInvestment.toLocaleString()}</span>
                   </div>
                   <div className="h-4 w-px bg-white/20"></div>
                   <button
                     onClick={() => setView('profile')}
                     className="text-[10px] font-black uppercase text-indigo-200 hover:text-white transition-colors"
                   >
-                    Añadir Fondos
+                    Añadir
                   </button>
                 </div>
               )}
 
-              <div className="bg-white p-3 rounded-[2.5rem] shadow-2xl max-w-3xl mx-auto border-4 border-white/20">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
-                  <div className="flex items-center px-6 py-4 bg-slate-50 rounded-3xl border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white group">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center mr-4 group-focus-within:bg-indigo-600 group-focus-within:text-white transition-colors">
-                      <Zap className="w-5 h-5" />
+              <div className="bg-white p-2 md:p-3 rounded-3xl md:rounded-[2.5rem] shadow-2xl max-w-2xl mx-auto border border-indigo-100/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                  <div className="flex items-center px-5 py-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white group">
+                    <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center mr-3 group-focus-within:bg-indigo-600 group-focus-within:text-white transition-colors">
+                      <Zap className="w-4 h-4" />
                     </div>
-                    <div className="text-left flex-1">
-                      <label className="block text-[10px] uppercase font-black text-slate-400 tracking-tighter mb-0.5">Monto a Invertir</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-black text-slate-400">$</span>
+                    <div className="text-left flex-1 min-w-0">
+                      <label className="block text-[9px] uppercase font-black text-slate-400 tracking-tighter mb-0.5">Inversión</label>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-base font-black text-slate-400">$</span>
                         <input
                           type="number"
                           value={investment}
                           onChange={(e) => setInvestment(Number(e.target.value))}
-                          className="w-full focus:outline-none text-slate-800 font-black text-xl bg-transparent"
+                          className="w-full focus:outline-none text-slate-800 font-black text-lg bg-transparent"
                           placeholder="0.00"
                         />
                         {user && investment < user.availableInvestment && (
                           <button
                             onClick={setMaxInvestment}
-                            className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-lg text-[10px] font-black hover:bg-indigo-100"
+                            className="bg-indigo-50 text-indigo-600 px-1.5 py-1 rounded-lg text-[9px] font-black hover:bg-indigo-100 shrink-0"
                           >
                             MÁX
                           </button>
@@ -244,17 +244,17 @@ const App: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center px-6 py-4 bg-slate-50 rounded-3xl border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white group">
-                    <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center mr-4 group-focus-within:bg-indigo-600 group-focus-within:text-white transition-colors">
-                      <MapPin className="w-5 h-5" />
+                  <div className="flex items-center px-5 py-3 bg-slate-50 rounded-2xl border border-slate-100 transition-all focus-within:ring-2 focus-within:ring-indigo-500 focus-within:bg-white group">
+                    <div className="w-9 h-9 bg-indigo-100 rounded-xl flex items-center justify-center mr-3 group-focus-within:bg-indigo-600 group-focus-within:text-white transition-colors">
+                      <MapPin className="w-4 h-4" />
                     </div>
-                    <div className="text-left flex-1">
-                      <label className="block text-[10px] uppercase font-black text-slate-400 tracking-tighter mb-0.5">Ubicación</label>
+                    <div className="text-left flex-1 min-w-0">
+                      <label className="block text-[9px] uppercase font-black text-slate-400 tracking-tighter mb-0.5">Ubicación</label>
                       <input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
-                        className="w-full focus:outline-none text-slate-800 font-black text-xl bg-transparent"
+                        className="w-full focus:outline-none text-slate-800 font-black text-lg bg-transparent"
                         placeholder="Ciudad o País"
                       />
                     </div>
@@ -265,14 +265,14 @@ const App: React.FC = () => {
                   <button
                     onClick={() => handleSearch('products')}
                     disabled={loading}
-                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-5 rounded-[1.8rem] font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-900/20 disabled:opacity-50 active:scale-95 group"
+                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 md:px-8 py-4 md:py-5 rounded-2xl md:rounded-[1.8rem] font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-900/20 disabled:opacity-50 active:scale-95 group"
                   >
                     {loading && !result ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
+                      <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
-                      <ShoppingBag className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                      <ShoppingBag className="w-5 h-5 group-hover:rotate-12 transition-transform" />
                     )}
-                    <span className="text-lg uppercase tracking-tight">Buscar Oportunidades Ganadoras</span>
+                    <span className="text-base md:text-lg uppercase tracking-tight">Cazar Oportunidades</span>
                   </button>
                 </div>
               </div>
@@ -315,11 +315,11 @@ const App: React.FC = () => {
                     <Smartphone className="w-10 h-10 text-indigo-600" />
                   </div>
                 </div>
-                <h3 className="text-3xl font-black text-slate-800 mb-3 tracking-tight">
-                  Sincronizando Tendencias 2026...
+                <h3 className="text-2xl md:text-3xl font-black text-slate-800 mb-2 tracking-tight">
+                  Analizando Mercado 2026...
                 </h3>
-                <p className="text-slate-500 max-w-md mx-auto font-medium">
-                  Consultando motores de búsqueda y redes sociales en tiempo real para filtrar los nichos más rentables en {location}.
+                <p className="text-slate-500 max-w-sm mx-auto font-medium text-sm md:text-base px-4">
+                  OportuniA está filtrando los nichos más rentables en {location} usando IA de última generación.
                 </p>
               </div>
             )}
@@ -437,8 +437,8 @@ const App: React.FC = () => {
         />
       )}
 
-      <footer className="text-center py-12 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] px-4">
-        <p>© 2026 NextVentures IA. Los análisis se basan en datos y tendencias de mercado actualizadas al 9 de febrero de 2026. Conectado a Supabase.</p>
+      <footer className="text-center py-12 text-slate-400 text-[9px] font-bold uppercase tracking-[0.2em] px-6 leading-relaxed">
+        <p>© 2026 OportuniA IA. Los análisis se basan en datos y tendencias de mercado actualizadas al 14 de febrero de 2026. Conectado a Supabase.</p>
       </footer>
     </div>
   );

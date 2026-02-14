@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { BusinessOpportunity, UserProfile } from '../types';
 // Added RefreshCw to imports
-import { X, Check, AlertTriangle, Target, LineChart, ExternalLink, Loader2, FileText, FileDown, Truck, Save, BookmarkCheck, Wallet, MinusCircle } from 'lucide-react';
+import { X, Check, AlertTriangle, Target, LineChart, ExternalLink, Loader2, FileText, FileDown, Truck, Save, BookmarkCheck, Wallet, MinusCircle, Zap } from 'lucide-react';
 import { BarChart, Bar, ResponsiveContainer, Cell } from 'recharts';
 import { generateMarketingContent, generateImagePromptFromScript } from '../services/geminiService';
 import { saveUserOpportunity, updateUserProfile } from '../services/supabaseService';
@@ -111,35 +111,35 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-      <div className="bg-white rounded-[2.5rem] w-full max-w-6xl max-h-[95vh] overflow-hidden shadow-2xl flex flex-col animate-in fade-in zoom-in duration-300">
-        <div className="p-8 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center p-0 md:p-4 bg-slate-900/60 backdrop-blur-sm">
+      <div className="bg-white rounded-t-[2.5rem] md:rounded-[2.5rem] w-full max-w-6xl h-[92vh] md:h-auto md:max-h-[95vh] overflow-hidden shadow-2xl flex flex-col animate-in slide-in-from-bottom md:zoom-in duration-300">
+        <div className="px-6 py-5 md:p-8 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">{opportunity.title}</h2>
-            <div className="flex items-center gap-4 mt-1">
-              <a href={opportunity.referenceUrl} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider hover:underline flex items-center">
-                <ExternalLink className="w-3 h-3 mr-1" /> Referencia de mercado
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight leading-tight">{opportunity.title}</h2>
+            <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-1">
+              <a href={opportunity.referenceUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] md:text-[10px] text-indigo-600 font-black uppercase tracking-wider hover:underline flex items-center">
+                <ExternalLink className="w-3 h-3 mr-1" /> Referencia
               </a>
               {user && (
-                <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-full text-[10px] font-black text-slate-500">
-                  <Wallet className="w-3 h-3" /> TU SALDO: ${user.availableInvestment.toLocaleString()}
+                <div className="flex items-center gap-1.5 bg-indigo-50 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black text-indigo-600 border border-indigo-100/50">
+                  <Wallet className="w-3 h-3" /> ${user.availableInvestment.toLocaleString()}
                 </div>
               )}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-            <X className="w-6 h-6 text-slate-500" />
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors shrink-0">
+            <X className="w-5 h-5 md:w-6 md:h-6 text-slate-400" />
           </button>
         </div>
 
-        <div className="p-8 overflow-y-auto custom-scrollbar">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <div className="lg:col-span-8 space-y-8">
-              <section className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-                <h3 className="text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
+        <div className="px-6 py-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+            <div className="lg:col-span-8 space-y-6 md:space-y-8">
+              <section className="bg-slate-50 p-5 md:p-6 rounded-3xl border border-slate-100">
+                <h3 className="text-base md:text-lg font-black text-slate-800 mb-2 md:mb-3 flex items-center gap-2 uppercase tracking-tight">
                   <Target className="w-5 h-5 text-indigo-600" /> Estrategia de Crecimiento
                 </h3>
-                <p className="text-slate-600 leading-relaxed italic border-l-4 border-indigo-500 pl-4 text-sm">
+                <p className="text-slate-600 leading-relaxed italic border-l-4 border-indigo-500 pl-4 text-xs md:text-sm">
                   "{opportunity.marketingStrategy}"
                 </p>
               </section>
@@ -229,29 +229,29 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
           </div>
         </div>
 
-        <div className="p-8 bg-slate-50 border-t border-slate-100 flex flex-col items-center">
-          <div className="flex flex-col md:flex-row gap-4 w-full justify-center">
-            <button onClick={onClose} className="px-8 py-4 bg-white border border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-slate-50 transition-all uppercase tracking-widest text-[10px]">Cerrar</button>
-            <button onClick={handleExportPDF} disabled={isExporting} className="px-8 py-4 bg-white border border-indigo-200 text-indigo-600 font-black rounded-2xl flex items-center gap-2 shadow-sm disabled:opacity-50 transition-all uppercase tracking-widest text-[10px]">
-              {isExporting ? <Loader2 className="animate-spin w-4 h-4" /> : <FileDown className="w-4 h-4" />} Descargar Informe
+        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-100 flex flex-col items-center shrink-0">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4 w-full justify-center">
+            <button onClick={onClose} className="px-8 py-4 bg-white border border-slate-200 text-slate-500 font-black rounded-2xl hover:bg-slate-50 transition-all uppercase tracking-widest text-[9px] md:text-[10px] shadow-sm">Cerrar</button>
+            <button onClick={handleExportPDF} disabled={isExporting} className="px-8 py-4 bg-white border border-indigo-200 text-indigo-600 font-black rounded-2xl flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 transition-all uppercase tracking-widest text-[9px] md:text-[10px]">
+              {isExporting ? <Loader2 className="animate-spin w-4 h-4" /> : <FileDown className="w-4 h-4" />} {isExporting ? "Preparando..." : "Descargar PDF"}
             </button>
             <button
               onClick={handleSaveOpportunity}
               disabled={isSaving || saveSuccess || (user !== null && !hasEnoughBudget)}
-              className={`px-10 py-4 font-black rounded-2xl flex items-center gap-2 transition-all shadow-xl uppercase tracking-widest text-[10px] ${saveSuccess
+              className={`px-10 py-4 font-black rounded-2xl flex items-center justify-center gap-2 transition-all shadow-xl uppercase tracking-widest text-[9px] md:text-[10px] ${saveSuccess
                 ? 'bg-emerald-100 text-emerald-700'
                 : !hasEnoughBudget && user !== null
                   ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-500 active:scale-95 disabled:opacity-50'
+                  : 'bg-indigo-600 text-white hover:bg-indigo-500 active:scale-95 disabled:opacity-50 shadow-indigo-200'
                 }`}
             >
-              {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : saveSuccess ? <BookmarkCheck className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-              {saveSuccess ? "¡Adquirido!" : !hasEnoughBudget && user !== null ? "Saldo Insuficiente" : "Invertir en esta Idea"}
+              {isSaving ? <Loader2 className="animate-spin w-4 h-4" /> : saveSuccess ? <BookmarkCheck className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+              {saveSuccess ? "¡Adquirido!" : !hasEnoughBudget && user !== null ? "Saldo Insuficiente" : "Ejecutar con OportuniA"}
             </button>
           </div>
           {saveSuccess && (
-            <p className="mt-4 text-[10px] font-black text-emerald-600 uppercase tracking-widest animate-bounce">
-              El capital ha sido descontado de tu cuenta.
+            <p className="mt-3 text-[9px] font-black text-emerald-600 uppercase tracking-widest animate-bounce px-4 text-center">
+              Capital descontado. La oportunidad se ha guardado en tu perfil.
             </p>
           )}
         </div>
