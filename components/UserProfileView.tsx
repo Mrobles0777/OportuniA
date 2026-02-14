@@ -2,15 +2,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { UserProfile, BusinessOpportunity } from '../types';
 import { getUserSavedOpportunities, deleteUserOpportunity, updateUserProfile, updateUserEmail, deleteCurrentUserAccount } from '../services/supabaseService';
-import { Briefcase, Trash2, Calendar, Mail, Phone, Wallet, Star, ArrowRight, Loader2, Bookmark, Edit2, Check, X, RefreshCw, Camera, DollarSign, AlertCircle, Upload } from 'lucide-react';
+import { Briefcase, Trash2, Calendar, Mail, Phone, Wallet, Star, ArrowRight, Loader2, Bookmark, Edit2, Check, X, RefreshCw, Camera, DollarSign, AlertCircle, Upload, LogOut } from 'lucide-react';
 
 interface Props {
   user: UserProfile;
   onSelectOpportunity: (opp: BusinessOpportunity) => void;
   onUpdateUser: (updatedUser: UserProfile) => void;
+  onLogout: () => void;
 }
 
-const UserProfileView: React.FC<Props> = ({ user, onSelectOpportunity, onUpdateUser }) => {
+const UserProfileView: React.FC<Props> = ({ user, onSelectOpportunity, onUpdateUser, onLogout }) => {
   const [savedOpps, setSavedOpps] = useState<BusinessOpportunity[]>([]);
   const [loadingOpps, setLoadingOpps] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -351,12 +352,20 @@ const UserProfileView: React.FC<Props> = ({ user, onSelectOpportunity, onUpdateU
                 <button onClick={handleCancel} className="px-8 py-3 bg-slate-100 text-slate-600 font-bold rounded-2xl flex items-center gap-2 hover:bg-slate-200 transition-all"><X className="w-5 h-5" /> Cancelar</button>
               </>
             ) : (
-              <button
-                onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
-                className="text-[10px] font-black uppercase text-red-400 hover:text-red-600 flex items-center gap-2 transition-colors"
-              >
-                <Trash2 className="w-4 h-4" /> Borrar mi cuenta definitivamente
-              </button>
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <button
+                  onClick={onLogout}
+                  className="px-8 py-3 bg-red-50 text-red-600 font-black rounded-2xl flex items-center gap-2 hover:bg-red-100 transition-all border border-red-100 uppercase tracking-widest text-[10px]"
+                >
+                  <LogOut className="w-4 h-4" /> Cerrar Sesión
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                  className="text-[10px] font-black uppercase text-slate-400 hover:text-red-400 flex items-center gap-2 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" /> Borrar mi cuenta definitivamente
+                </button>
+              </div>
             )}
           </div>
 

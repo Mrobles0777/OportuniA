@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [selectedOpp, setSelectedOpp] = useState<BusinessOpportunity | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [view, setView] = useState<'main' | 'profile'>('main');
   const [authConfig, setAuthConfig] = useState<{ show: boolean; mode: 'login' | 'register' }>({ show: false, mode: 'register' });
 
@@ -45,7 +46,9 @@ const App: React.FC = () => {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setResult(null);
+        setError(null);
         setView('main');
+        setShowLogoutConfirm(false);
       }
     });
 
@@ -176,7 +179,7 @@ const App: React.FC = () => {
                 >
                   {user.avatarUrl ? <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-indigo-500" />}
                 </div>
-                <button onClick={handleLogout} className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all" title="Cerrar Sesión">
+                <button onClick={() => setShowLogoutConfirm(true)} className="p-2 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all" title="Cerrar Sesión">
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
@@ -204,7 +207,12 @@ const App: React.FC = () => {
 
       {view === 'profile' && user ? (
         <main className="max-w-7xl mx-auto px-4 py-12">
-          <UserProfileView user={user} onSelectOpportunity={setSelectedOpp} onUpdateUser={(u) => setUser(u)} />
+          <UserProfileView
+            user={user}
+            onSelectOpportunity={setSelectedOpp}
+            onUpdateUser={(u) => setUser(u)}
+            onLogout={() => setShowLogoutConfirm(true)}
+          />
         </main>
       ) : (
         <>
@@ -466,6 +474,40 @@ const App: React.FC = () => {
           onClose={() => setAuthConfig({ ...authConfig, show: false })}
           onSuccess={(userData) => setUser(userData)}
         />
+      )}
+
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowLogoutConfirm(false)}
+          />
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl relative z-10 animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <LogOut className="w-8 h-8 text-red-500" />
+            </div>
+
+            <h3 className="text-xl font-black text-slate-900 text-center mb-2 tracking-tight">¿Cerrar Sesión?</h3>
+            <p className="text-slate-500 text-center text-sm font-medium mb-8">
+              Tu sesión actual terminará. Tendrás que volver a autenticarte para ver tus negocios guardados.
+            </p>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleLogout}
+                className="w-full py-4 bg-red-500 text-white font-black rounded-2xl hover:bg-red-600 transition-all uppercase tracking-widest text-[10px] shadow-lg shadow-red-200"
+              >
+                Cerrar Sesión Definitivamente
+              </button>
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="w-full py-4 bg-slate-50 text-slate-400 font-bold rounded-2xl hover:bg-slate-100 transition-all uppercase tracking-widest text-[10px]"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <footer className="text-center py-12 text-slate-400 text-[9px] font-bold uppercase tracking-[0.2em] px-6 leading-relaxed">
