@@ -92,15 +92,29 @@ const App: React.FC = () => {
     setAnalysisType(type);
     setError(null);
     setView('main');
+
     try {
+      // Usar una bandera de cancelación simple para esta implementación
+      // En una implementación real más compleja se usaría AbortController
       const data = await analyzeOpportunities(investment, location, type);
-      setResult(data);
+
+      // Solo actualizar si sigue cargando (no se detuvo manualmente)
+      setLoading(prev => {
+        if (prev) {
+          setResult(data);
+        }
+        return false;
+      });
     } catch (err: any) {
       console.error(err);
       setError(err.message || "Ocurrió un error inesperado al analizar las oportunidades.");
-    } finally {
       setLoading(false);
     }
+  };
+
+  const handleStopSearch = () => {
+    setLoading(false);
+    setError("Búsqueda detenida por el usuario.");
   };
 
   const setMaxInvestment = () => {
@@ -268,11 +282,11 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="w-full">
+                <div className="w-full flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={() => handleSearch('products')}
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 md:px-8 py-4 md:py-5 rounded-2xl md:rounded-[1.8rem] font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-900/20 disabled:opacity-50 active:scale-95 group"
+                    className={`flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 md:px-8 py-4 md:py-5 rounded-2xl md:rounded-[1.8rem] font-black transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-900/20 disabled:opacity-50 active:scale-95 group ${loading ? 'opacity-80' : ''}`}
                   >
                     {loading && !result ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -281,6 +295,16 @@ const App: React.FC = () => {
                     )}
                     <span className="text-base md:text-lg uppercase tracking-tight">Cazar Oportunidades</span>
                   </button>
+
+                  {loading && (
+                    <button
+                      onClick={handleStopSearch}
+                      className="sm:w-48 bg-red-50 text-red-600 border-2 border-red-100 hover:bg-red-100 px-6 py-4 md:py-5 rounded-2xl md:rounded-[1.8rem] font-black transition-all flex items-center justify-center gap-2 active:scale-95 animate-in slide-in-from-right-2"
+                    >
+                      <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse"></div>
+                      <span className="text-sm md:text-base uppercase tracking-tight">Detener</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
