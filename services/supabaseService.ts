@@ -55,11 +55,10 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    // Si no hay usuario en auth, comprobamos la sesión directamente por si auth.getUser() falla por latencia
     if (userError || !user) {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session?.user) return null;
-
+      // If we only have session but getUser failed, we return session data but we can't safely upsert without a fresh user object
       const sUser = sessionData.session.user;
       return {
         id: sUser.id,
@@ -72,6 +71,7 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
       };
     }
 
+    // Attempt to get the profile
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
@@ -79,16 +79,38 @@ export const getCurrentUserProfile = async (): Promise<UserProfile | null> => {
       .single();
 
     if (error || !profile) {
-      console.warn("Perfil no encontrado en tabla, usando metadatos de sesión.");
-      return {
+      console.warn("Perfil no encontrado en tabla, creando perfil desde metadatos...");
+
+      // Auto-create/upsert the profile if it doesn't exist
+      const newProfileData = {
         id: user.id,
-        email: user.email || '',
-        fullName: user.user_metadata?.full_name || 'Nuevo Inversor',
-        phone: user.user_metadata?.phone || '',
-        availableInvestment: Number(user.user_metadata?.available_investment || 0),
-        avatarUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`,
-        createdAt: user.created_at
+        full_name: user.user_metadata?.full_name || user.user_metadata?.name || 'Inversor Google',
+        available_investment: Number(user.user_metadata?.available_investment || 100000), // Default 100k if not set
+        avatar_url: user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`,
+        updated_at: new Date().toISOString()
       };
+
+      const { data: upsertedData, error: upsertError } = await supabase
+        .from('profiles')
+        .upsert(newProfileData)
+        .select()
+        .single();
+
+      if (upsertError) {
+        console.error("Error al auto-crear perfil:", upsertError);
+        // Return temporary data if upsert fails
+        return {
+          id: user.id,
+          email: user.email || '',
+          fullName: newProfileData.full_name,
+          phone: user.user_metadata?.phone || '',
+          availableInvestment: newProfileData.available_investment,
+          avatarUrl: newProfileData.avatar_url,
+          createdAt: user.created_at
+        };
+      }
+
+      return mapProfile(upsertedData, user.email);
     }
 
     return mapProfile(profile, user.email);
@@ -215,9 +237,11 @@ export const getUserSavedOpportunities = async (userId: string): Promise<Busines
       expectedROI: item.expected_roi,
       difficulty: item.difficulty,
       marketingStrategy: item.marketing_strategy,
-      reference_url: item.reference_url,
+      referenceUrl: item.reference_url,
       suppliers: item.suppliers || [],
-      trends: []
+      trends: [],
+      pros: [],
+      cons: []
     }));
   } catch (err) {
     console.error("Error al obtener oportunidades guardadas:", err);
