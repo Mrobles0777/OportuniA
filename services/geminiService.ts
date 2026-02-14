@@ -115,13 +115,19 @@ export const generateImagePromptFromScript = async (script: string): Promise<str
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
-    contents: `Basado en el siguiente guion de ventas de 2026, crea un PROMPT de generación de imagen (estilo Midjourney/DALL-E) que represente visualmente la esencia de esta oferta comercial moderna. 
-    REGLA: Responde ÚNICAMENTE con el prompt en INGLÉS para mejor compatibilidad con modelos de imagen, debe ser descriptivo, detallando estilo 4k, iluminación cinematográfica y composición premium. Sin texto.
+    contents: `Basado en el siguiente guion de ventas de 2026, crea un PROMPT de generación de imagen (estilo Midjourney/DALL-E) que sea ALTAMENTE CREATIVO y represente la esencia del negocio.
+    
+    INSTRUCCIONES:
+    1. Debe ser un prompt en INGLÉS.
+    2. El estilo debe ser una mezcla de: "Modern Architecture", "Futuristic Tech", "Cinematic Lighting", "Boutique Aesthetic" o "Cyberpunk Minimalist" según el tipo de negocio.
+    3. Incluye detalles de texturas (vidrio pulido, luces neon suaves, acabados premium).
+    4. Composición: Plano cinematográfico, profundidad de campo (bokeh), 8k res.
+    5. SIN TEXTO. SIN LOGOS.
     
     GUION:
     ${script}
     
-    PROMPT:`,
+    PROMPT (Responde solo con el texto del prompt):`,
   });
   return response.text?.trim() || '';
 };
