@@ -65,7 +65,7 @@ export const analyzeOpportunities = async (
   try {
     // Use gemini-2.5-flash as requested
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       config: {
         tools: [{ googleSearch: {} }],
@@ -98,7 +98,7 @@ export const generateMarketingContent = async (title: string, description: strin
   const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-1.5-flash",
     contents: `Genera un guion de ventas persuasivo y 3 copys para redes sociales optimizados para el mercado de febrero de 2026 para el siguiente producto de negocio:
     Título: ${title}
     Descripción: ${description}
@@ -114,7 +114,7 @@ export const generateImagePromptFromScript = async (script: string): Promise<str
   const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
   const ai = new GoogleGenAI({ apiKey });
   const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
+    model: "gemini-1.5-flash",
     contents: `Basado en el siguiente guion de ventas de 2026, crea un PROMPT de generación de imagen (estilo Midjourney/DALL-E) que sea ALTAMENTE CREATIVO y represente la esencia del negocio.
     
     INSTRUCCIONES:
