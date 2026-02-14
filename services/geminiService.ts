@@ -116,12 +116,12 @@ export const generateImagePromptFromScript = async (script: string): Promise<str
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: `Basado en el siguiente guion de ventas de 2026, crea un PROMPT de generación de imagen (estilo Midjourney/DALL-E) que represente visualmente la esencia de esta oferta comercial moderna. 
-    El prompt debe ser en INGLÉS, descriptivo, detallando estilo, iluminación futurista y composición limpia.
+    El prompt debe ser en Español, descriptivo, detallando estilo, iluminación futurista y composición limpia.
     
     GUION:
     ${script}
     
-    Responde ÚNICAMENTE con el prompt en inglés.`,
+    Responde ÚNICAMENTE con el prompt en Español.`,
   });
   // Use response.text property
   return response.text?.trim() || '';

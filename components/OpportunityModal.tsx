@@ -91,18 +91,73 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
       const pageWidth = pdf.internal.pageSize.getWidth();
       const margin = 20;
       let y = 20;
-      pdf.setFontSize(22);
-      pdf.setTextColor(79, 70, 229);
-      pdf.text('Reporte de Oportunidad de Negocio', margin, y);
-      y += 20;
+
+      // Header Rebranded
+      pdf.setFontSize(24);
+      pdf.setTextColor(79, 70, 229); // Indigo 600
+      pdf.text('OportuniA IA - Reporte de Negocio', margin, y);
+      y += 15;
+
+      // Title
       pdf.setFontSize(18);
-      pdf.setTextColor(15, 23, 42);
+      pdf.setTextColor(15, 23, 42); // Slate 900
       pdf.text(opportunity.title, margin, y);
       y += 10;
-      pdf.setFontSize(11);
+
+      // Overview
+      pdf.setFontSize(12);
+      pdf.setTextColor(71, 85, 105); // Slate 600
       const splitDesc = pdf.splitTextToSize(opportunity.description, pageWidth - margin * 2);
       pdf.text(splitDesc, margin, y);
-      pdf.save(`Plan_Negocio_${opportunity.title.replace(/\s+/g, '_')}.pdf`);
+      y += (splitDesc.length * 7) + 10;
+
+      // Strategy
+      pdf.setFontSize(14);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text('Estrategia de Crecimiento', margin, y);
+      y += 8;
+      pdf.setFontSize(11);
+      pdf.setTextColor(71, 85, 105);
+      const splitStrategy = pdf.splitTextToSize(opportunity.marketingStrategy, pageWidth - margin * 2);
+      pdf.text(splitStrategy, margin, y);
+      y += (splitStrategy.length * 6) + 15;
+
+      // Data summary
+      pdf.setFontSize(14);
+      pdf.setTextColor(15, 23, 42);
+      pdf.text('Datos Financieros', margin, y);
+      y += 8;
+      pdf.setFontSize(11);
+      pdf.text(`Inversión Inicial: ${opportunity.initialInvestment.toLocaleString()}`, margin, y);
+      y += 6;
+      pdf.text(`Retorno Esperado (ROI): ${opportunity.expectedROI}`, margin, y);
+      y += 15;
+
+      // MARKETING CONTENT (Ventas Viral) - NEW
+      if (marketingContent) {
+        if (y > 240) { pdf.addPage(); y = 20; }
+
+        pdf.setFontSize(16);
+        pdf.setTextColor(16, 185, 129); // Emerald 500
+        pdf.text('Guion de Ventas Viral (IA)', margin, y);
+        y += 10;
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 41, 59); // Slate 800
+        const splitMarketing = pdf.splitTextToSize(marketingContent, pageWidth - margin * 2);
+
+        // Handle pagination for marketing content
+        splitMarketing.forEach((line: string) => {
+          if (y > 275) {
+            pdf.addPage();
+            y = 20;
+          }
+          pdf.text(line, margin, y);
+          y += 5;
+        });
+      }
+
+      pdf.save(`OportuniA_${opportunity.title.replace(/\s+/g, '_')}.pdf`);
     } catch (e) {
       console.error(e);
     } finally {
