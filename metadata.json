@@ -1,0 +1,8 @@
+{
+  "name": "Oportunidades de Negocio Inteligentes",
+  "description": "Una aplicación avanzada que utiliza IA y Google Search para identificar oportunidades de negocio basadas en tu inversión inicial y tendencias actuales de redes sociales.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
