@@ -59,46 +59,39 @@ serve(async (req) => {
                 ? 'especificamente centradas en la VENTA DE PRODUCTOS (e-commerce, dropshipping, venta directa, Amazon, TikTok Shop, productos fisicos o digitales)'
                 : 'de negocio generales (servicios, con modelos de suscripción, franquicias modernas, startups, o modelos hibridos)';
 
-            // Reducimos a 3 oportunidades para máxima velocidad
-            prompt = `Analiza oportunidades de negocio reales y actualizadas a la fecha actual (febrero de 2026) para una inversion inicial de ${investment} en la moneda local de ${location}. 
-      El analisis debe enfocarse en oportunidades ${typeContext}.
+            // Reducimos complejidad para evitar timeouts (504)
+            prompt = `Analiza para inversión de ${investment} en ${location} (${typeContext}).
       
-      PASOS IMPORTANTES:
-      1. Identifica la moneda oficial de ${location}.
-      2. Considera tendencias virales de este año (2026).
-      3. Genera EXACTAMENTE 3 oportunidades detalladas.
+      IMPORTANTE:
+      1. Moneda de ${location}.
+      2. Tendencias 2026.
+      3. SOLO 3 oportunidades breves y rentables.
       
-      Devuelve un JSON siguiendo este esquema:
+      JSON scheme:
       {
-        "marketOverview": "string",
-        "currencySymbol": "string",
-        "currencyCode": "string",
+        "marketOverview": "Resumen muy breve del mercado local (max 2 lineas)",
+        "currencySymbol": "$",
+        "currencyCode": "CLP/USD",
         "opportunities": [
           {
-            "id": "string",
-            "title": "string",
-            "description": "string",
+            "id": "1",
+            "title": "Titulo Corto",
+            "description": "Descripcion concisa (max 20 palabras)",
             "initialInvestment": number,
-            "expectedROI": "string",
+            "expectedROI": "Ej: 15%",
             "difficulty": "Baja" | "Media" | "Alta",
-            "trends": ["string"],
-            "pros": ["string"],
-            "cons": ["string"],
-            "marketingStrategy": "string",
-            "referenceUrl": "string"
+            "marketingStrategy": "Estrategia breve",
+            "referenceUrl": "https://google.com"
           }
         ]
       }
-      Responde SOLO el JSON. No incluyas markdown como \`\`\`json.`;
+      Responde SOLO el JSON.`;
         } else if (action === 'marketing') {
             const { title, description, strategy } = body
-            prompt = `Genera un guion de ventas persuasivo y 3 copys para redes sociales de febrero de 2026:
-      Título: ${title}
-      Descripción: ${description}
-      Estrategia: ${strategy}`
+            prompt = `Genera un guion de ventas corto para: ${title}.`
         } else if (action === 'image-prompt') {
             const { script } = body
-            prompt = `Crea un PROMPT de generación de imagen en INGLÉS para este guion: ${script}. Responde solo el prompt.`
+            prompt = `Create a short image prompt: ${script}`
         } else {
             return new Response(JSON.stringify({ error: "Acción no válida." }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -110,7 +103,7 @@ serve(async (req) => {
 
         // Añadimos un AbortController para manejar timeouts propios
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000); // 25s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 45000); // Aumentado a 45s
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {

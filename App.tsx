@@ -106,7 +106,12 @@ const App: React.FC = () => {
       // Solo actualizar si sigue cargando (no se detuvo manualmente)
       setLoading(prev => {
         if (prev) {
-          setResult(data);
+          if (data && data.opportunities && Array.isArray(data.opportunities)) {
+            setResult(data);
+          } else {
+            console.error("Datos recibidos inválidos:", data);
+            setError("La respuesta del servidor no tiene el formato correcto.");
+          }
         }
         return false;
       });
