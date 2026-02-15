@@ -1,7 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// Setup type definitions for built-in Supabase Runtime APIs
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')?.trim()
-const GEMINI_MODEL = "gemini-2.5-flash"
+const GEMINI_MODEL = "gemini-2.0-flash" // Stable until March 2026
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -9,7 +10,7 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
     const start = Date.now();
     console.log(`[${start}] Nueva petición recibida`);
 
@@ -59,33 +60,32 @@ serve(async (req) => {
                 ? 'especificamente centradas en la VENTA DE PRODUCTOS (e-commerce, dropshipping, venta directa, Amazon, TikTok Shop, productos fisicos o digitales)'
                 : 'de negocio generales (servicios, con modelos de suscripción, franquicias modernas, startups, o modelos hibridos)';
 
-            // Reducimos complejidad para evitar timeouts (504)
-            prompt = `Analiza para inversión de ${investment} en ${location} (${typeContext}).
+            // Prompt optimizado para velocidad y formato JSON estricto
+            prompt = `Analiza opciones de inversión de ${investment} en ${location} (${typeContext}).
       
       IMPORTANTE:
-      1. Moneda de ${location}.
-      2. Tendencias 2026.
-      3. SOLO 3 oportunidades breves y rentables.
+      1. Usa la moneda oficial de ${location}.
+      2. Basado en tendencias 2026.
+      3. Genera 3 oportunidades breves.
       
-      JSON scheme:
+      Devuelve SOLO un JSON válido con este formato (sin markdown):
       {
-        "marketOverview": "Resumen muy breve del mercado local (max 2 lineas)",
+        "marketOverview": "Resumen breve del mercado (max 2 frases)",
         "currencySymbol": "$",
-        "currencyCode": "CLP/USD",
+        "currencyCode": "CODE",
         "opportunities": [
           {
             "id": "1",
-            "title": "Titulo Corto",
-            "description": "Descripcion concisa (max 20 palabras)",
-            "initialInvestment": number,
-            "expectedROI": "Ej: 15%",
-            "difficulty": "Baja" | "Media" | "Alta",
-            "marketingStrategy": "Estrategia breve",
+            "title": "Titulo",
+            "description": "Descripcion breve",
+            "initialInvestment": 1000,
+            "expectedROI": "20%",
+            "difficulty": "Baja",
+            "marketingStrategy": "Estrategia",
             "referenceUrl": "https://google.com"
           }
         ]
-      }
-      Responde SOLO el JSON.`;
+      }`;
         } else if (action === 'marketing') {
             const { title, description, strategy } = body
             prompt = `Genera un guion de ventas corto para: ${title}.`
@@ -99,11 +99,11 @@ serve(async (req) => {
             })
         }
 
-        console.log(`[${Date.now() - start}ms] Llamando a Gemini API...`);
+        console.log(`[${Date.now() - start}ms] Llamando a Gemini API (${GEMINI_MODEL})...`);
 
-        // Añadimos un AbortController para manejar timeouts propios
+        // Timeout interno para la llamada a la IA
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 45000); // Aumentado a 45s
+        const timeoutId = setTimeout(() => controller.abort(), 40000); // 40s timeout
 
         try {
             const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
@@ -129,20 +129,17 @@ serve(async (req) => {
             console.log(`[${Date.now() - start}ms] Gemini API respondió correctamente`);
 
             if (action === 'analyze') {
-                // Limpiar posible formato markdown si Gemini lo incluye
+                // Limpieza robusta de JSON
                 let cleanText = responseText.trim();
-                if (cleanText.startsWith("```json")) {
-                    cleanText = cleanText.substring(7);
-                }
-                if (cleanText.endsWith("```")) {
-                    cleanText = cleanText.substring(0, cleanText.length - 3);
-                }
+                // Eliminar bloques de código markdown si existen
+                cleanText = cleanText.replace(/^```json\s*/, "").replace(/^```\s*/, "").replace(/\s*```$/, "");
 
-                const jsonMatch = cleanText.match(/\{[\s\S]*\}/)
-                const resultData = jsonMatch ? jsonMatch[0] : cleanText
+                // Intentar encontrar el objeto JSON si hay texto alrededor
+                const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+                const resultData = jsonMatch ? jsonMatch[0] : cleanText;
 
                 try {
-                    // Validar que sea un JSON válido antes de enviarlo
+                    // Validar
                     JSON.parse(resultData);
                     console.log(`[${Date.now() - start}ms] JSON validado, enviando respuesta`);
                     return new Response(resultData, {
@@ -161,7 +158,6 @@ serve(async (req) => {
                 }
             }
 
-            // Para marketing e imagen
             return new Response(JSON.stringify({ content: responseText }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
             })
