@@ -380,7 +380,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between mb-8 px-4">
-                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">{result.opportunities.length} Sugerencias para invertir ${investment.toLocaleString()} {result.currencyCode}</h3>
+                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">{result.opportunities?.length || 0} Sugerencias para invertir ${investment.toLocaleString()} {result.currencyCode}</h3>
                   <button
                     onClick={() => {
                       setResult(null);
@@ -394,7 +394,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {result.opportunities.map((opp) => (
+                  {result.opportunities?.map((opp) => (
                     <OpportunityCard
                       key={opp.id}
                       opportunity={opp}

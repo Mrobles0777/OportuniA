@@ -34,6 +34,11 @@ export const analyzeOpportunities = async (
     throw new Error(error.message || "Error al analizar oportunidades.");
   }
 
+  if (!data || !data.opportunities) {
+    console.error("Respuesta inválida de Edge Function:", data);
+    throw new Error("La IA no devolvió oportunidades válidas. Intenta de nuevo.");
+  }
+
   return { ...data, sources: [] }; // Sources se manejarán internamente si se vuelve a activar googleSearch
 };
 
