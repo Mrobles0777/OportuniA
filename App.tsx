@@ -12,7 +12,7 @@ import UserProfileView from './components/UserProfileView';
 const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [investment, setInvestment] = useState<number>(50000); // Monto a invertir por búsqueda
-  const [location, setLocation] = useState<string>('México');
+  const [location, setLocation] = useState<string>('Santiago de Chile');
   const [loading, setLoading] = useState<boolean>(false);
   const [appInit, setAppInit] = useState<boolean>(true);
   const [analysisType, setAnalysisType] = useState<AnalysisType | null>(null);
