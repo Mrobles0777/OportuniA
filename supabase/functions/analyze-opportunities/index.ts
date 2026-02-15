@@ -2,7 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')?.trim()
-const GEMINI_MODEL = "gemini-2.5-flash"
+const GEMINI_MODEL = "gemini-2.0-flash"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
         const timeoutId = setTimeout(() => controller.abort(), 40000); // 40s timeout
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),

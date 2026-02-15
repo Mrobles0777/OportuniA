@@ -25,34 +25,64 @@ const App: React.FC = () => {
 
   // Inicializar sesión de Supabase
   useEffect(() => {
+    let isMounted = true;
+
     const initSession = async () => {
-      const profile = await getCurrentUserProfile();
-      if (profile) {
-        setUser(profile);
-        // Sugerir por defecto la mitad del presupuesto o 50k
-        setInvestment(Math.min(profile.availableInvestment, 50000) || 50000);
+      try {
+        console.log("Iniciando sesión...");
+        const profile = await getCurrentUserProfile();
+        if (isMounted && profile) {
+          setUser(profile);
+          setInvestment(Math.min(profile.availableInvestment, 50000) || 50000);
+        }
+      } catch (err) {
+        console.error("Error crítico en initSession:", err);
+      } finally {
+        if (isMounted) setAppInit(false);
       }
-      setAppInit(false);
     };
+
+    // Timeout de seguridad global para la carga de la app (10 segundos)
+    const safetyTimeout = setTimeout(() => {
+      if (appInit && isMounted) {
+        console.warn("Fallo de carga: Activando timeout de seguridad");
+        setAppInit(false);
+      }
+    }, 10000);
 
     initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Evento Auth:", event);
       if (event === 'SIGNED_IN' && session) {
         const profile = await getCurrentUserProfile();
-        if (profile) {
+        if (isMounted && profile) {
           setUser(profile);
         }
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setResult(null);
-        setError(null);
-        setView('main');
-        setShowLogoutConfirm(false);
+        if (isMounted) {
+          setUser(null);
+          setResult(null);
+          setError(null);
+          setView('main');
+          setShowLogoutConfirm(false);
+          // Limpiar caché local de sesión para evitar estados corruptos
+          try {
+            for (const key in localStorage) {
+              if (key.startsWith('sb-')) localStorage.removeItem(key);
+            }
+          } catch (e) {
+            console.error("Error limpiando localStorage:", e);
+          }
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Geolocalización inicial
