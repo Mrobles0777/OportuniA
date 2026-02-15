@@ -1,8 +1,8 @@
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')?.trim()
-const GEMINI_MODEL = "gemini-2.0-flash"
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')?.trim()
+const OPENAI_MODEL = "gpt-4o-mini"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -12,7 +12,7 @@ const corsHeaders = {
 
 Deno.serve(async (req) => {
     const start = Date.now();
-    console.log(`[${start}] Nueva petición recibida`);
+    console.log(`[${start}] Nueva petición recibida (OpenAI)`);
 
     // Manejo de CORS
     if (req.method === 'OPTIONS') {
@@ -44,9 +44,9 @@ Deno.serve(async (req) => {
         const { action } = body
         console.log(`[${Date.now() - start}ms] Ejecutando acción: ${action}`);
 
-        if (!GEMINI_API_KEY) {
-            console.error("Config Error: GEMINI_API_KEY no encontrado.");
-            return new Response(JSON.stringify({ error: "Config Error: GEMINI_API_KEY no encontrado en los secretos de Supabase." }), {
+        if (!OPENAI_API_KEY) {
+            console.error("Config Error: OPENAI_API_KEY no encontrado.");
+            return new Response(JSON.stringify({ error: "Config Error: OPENAI_API_KEY no encontrado en los secretos de Supabase." }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
                 status: 500
             })
@@ -121,17 +121,26 @@ Deno.serve(async (req) => {
             })
         }
 
-        console.log(`[${Date.now() - start}ms] Llamando a Gemini API (${GEMINI_MODEL})...`);
+        console.log(`[${Date.now() - start}ms] Llamando a OpenAI API (${OPENAI_MODEL})...`);
 
-        // Timeout interno para la llamada a la IA
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 40000); // 40s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 40000);
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+            const response = await fetch(`https://api.openai.com/v1/chat/completions`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }),
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: OPENAI_MODEL,
+                    messages: [
+                        { role: "system", content: "Eres un experto en análisis de mercados y negocios para 2026." },
+                        { role: "user", content: prompt }
+                    ],
+                    response_format: action === 'analyze' ? { type: "json_object" } : undefined
+                }),
                 signal: controller.signal
             })
 
@@ -139,16 +148,16 @@ Deno.serve(async (req) => {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                console.error(`[${Date.now() - start}ms] Gemini API Error (${response.status}):`, errorText);
-                return new Response(JSON.stringify({ error: `Gemini API Error: ${response.status}`, details: errorText }), {
+                console.error(`[${Date.now() - start}ms] OpenAI API Error (${response.status}):`, errorText);
+                return new Response(JSON.stringify({ error: `OpenAI API Error: ${response.status}`, details: errorText }), {
                     headers: { ...corsHeaders, "Content-Type": "application/json" },
                     status: response.status
                 })
             }
 
             const data = await response.json()
-            const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || ""
-            console.log(`[${Date.now() - start}ms] Gemini API respondió correctamente`);
+            const responseText = data.choices?.[0]?.message?.content || ""
+            console.log(`[${Date.now() - start}ms] OpenAI API respondió correctamente`);
 
             if (action === 'analyze') {
                 // Limpieza robusta de JSON
