@@ -96,8 +96,24 @@ Deno.serve(async (req) => {
             const { title, description, strategy } = body
             prompt = `Genera un guion de ventas corto para: ${title}.`
         } else if (action === 'image-prompt') {
-            const { script } = body
-            prompt = `Create a short image prompt: ${script}`
+            const { title, context } = body
+
+            // Prompt engineered to act as a visual expert
+            prompt = `
+            Act as an expert prompt engineer for generative AI (Midjourney/Stable Diffusion).
+            
+            Goal: Create a detailed, high-quality image prompt based on this business opportunity:
+            Title: "${title}"
+            Context: "${context}"
+            
+            Instructions for the prompt you create:
+            1. Describe a photorealistic, modern, and professional scene representing this business.
+            2. Use keywords like: cinematic lighting, 8k, detailed texture, modern design, professional photography, depth of field.
+            3. Avoid text or words inside the image.
+            4. Keep it focused on the product/service or the result of the service.
+            5. The output must be ONLY the raw prompt text, nothing else.
+            `
+
         } else {
             return new Response(JSON.stringify({ error: "Acción no válida." }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },

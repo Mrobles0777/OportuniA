@@ -49,7 +49,7 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
   const handleGenerateImage = async () => {
     setIsGeneratingImage(true);
     try {
-      const prompt = await generateImagePromptFromScript(marketingContent || opportunity.description);
+      const prompt = await generateImagePromptFromScript(opportunity.title, marketingContent || opportunity.description);
       // Usamos Pollinations AI para generar la imagen basada en el prompt de Gemini
       const seed = Math.floor(Math.random() * 1000000);
       const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;

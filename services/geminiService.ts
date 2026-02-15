@@ -77,9 +77,9 @@ export const generateMarketingContent = async (title: string, description: strin
   return data.content || '';
 };
 
-export const generateImagePromptFromScript = async (script: string): Promise<string> => {
+export const generateImagePromptFromScript = async (title: string, context: string): Promise<string> => {
   const { data, error } = await supabase.functions.invoke('analyze-opportunities', {
-    body: { action: 'image-prompt', script }
+    body: { action: 'image-prompt', title, context }
   });
 
   if (error) throw error;
