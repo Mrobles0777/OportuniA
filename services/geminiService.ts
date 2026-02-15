@@ -15,9 +15,22 @@ export const analyzeOpportunities = async (
 
   if (error) {
     console.error("Error en Edge Function (analyze):", error);
-    if (error.status === 429) {
+
+    // Si error.context?.status existe, es un error de red o de la función
+    const status = error.status || (error as any).context?.status;
+
+    if (status === 429) {
       throw new Error("Cuota agotada en Gemini. Intenta de nuevo en un momento.");
     }
+
+    if (status === 405) {
+      throw new Error("Error interno: Método no permitido.");
+    }
+
+    if (error.message === 'Failed to fetch') {
+      throw new Error("No se pudo conectar con la función de Supabase. Verifica tu conexión a internet o el estado del servicio.");
+    }
+
     throw new Error(error.message || "Error al analizar oportunidades.");
   }
 
