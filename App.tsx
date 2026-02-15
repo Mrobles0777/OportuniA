@@ -95,8 +95,10 @@ const App: React.FC = () => {
     setAnalysisType(type);
     setError(null);
     setView('main');
+    console.log("Ejecutando handleSearch...");
 
     try {
+      console.log("Llamando a analyzeOpportunities...");
       // Usar una bandera de cancelación simple para esta implementación
       // En una implementación real más compleja se usaría AbortController
       const data = await analyzeOpportunities(investment, location, type);
