@@ -55,7 +55,7 @@ const OpportunityCard: React.FC<Props> = ({ opportunity, onSelect, currencySymbo
         </div>
 
         <div className="flex flex-wrap gap-1.5 pt-2">
-          {opportunity.trends.slice(0, 3).map((trend, i) => (
+          {opportunity.trends?.slice(0, 3).map((trend, i) => (
             <span key={i} className="text-[9px] uppercase tracking-wider bg-indigo-50/50 px-2.5 py-1 rounded-lg text-indigo-600 font-black border border-indigo-100/30">
               #{trend}
             </span>

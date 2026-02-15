@@ -49,7 +49,16 @@ export const analyzeOpportunities = async (
       throw new Error("La IA no devolvió oportunidades válidas. Intenta de nuevo.");
     }
 
-    return { ...data, sources: [] }; // Sources se manejarán internamente si se vuelve a activar googleSearch
+    // Asegurar que todos los campos requeridos por el frontend existan para evitar crashes en React
+    const sanitizedOpportunities = data.opportunities.map((opp: any) => ({
+      ...opp,
+      trends: opp.trends || [],
+      pros: opp.pros || [],
+      cons: opp.cons || [],
+      suppliers: opp.suppliers || []
+    }));
+
+    return { ...data, opportunities: sanitizedOpportunities, sources: [] }; // Sources se manejarán internamente si se vuelve a activar googleSearch
 
   } catch (err: any) {
     if (err.name === 'AbortError') {

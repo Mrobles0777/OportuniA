@@ -259,7 +259,7 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
               </section>
 
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {opportunity.suppliers.map((supplier, idx) => (
+                {opportunity.suppliers?.map((supplier, idx) => (
                   <div key={idx} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col hover:border-indigo-200 transition-colors">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-black text-slate-900 uppercase tracking-tighter">{supplier.name}</span>

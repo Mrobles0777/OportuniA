@@ -2,7 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')?.trim()
-const GEMINI_MODEL = "gemini-2.0-flash" // Stable until March 2026
+const GEMINI_MODEL = "gemini-2.5-flash"
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       IMPORTANTE:
       1. Usa la moneda oficial de ${location}.
       2. Basado en tendencias 2026.
-      3. Genera 3 oportunidades breves.
+      3. Genera 3 oportunidades detalladas.
       
       Devuelve SOLO un JSON válido con este formato (sin markdown):
       {
@@ -77,12 +77,18 @@ Deno.serve(async (req) => {
           {
             "id": "1",
             "title": "Titulo",
-            "description": "Descripcion breve",
+            "description": "Descripcion detallada",
             "initialInvestment": 1000,
-            "expectedROI": "20%",
+            "expectedROI": "20% anual",
             "difficulty": "Baja",
-            "marketingStrategy": "Estrategia",
-            "referenceUrl": "https://google.com"
+            "trends": ["Tendencia 1", "Tendencia 2"],
+            "pros": ["Pro 1", "Pro 2"],
+            "cons": ["Contra 1", "Contra 2"],
+            "marketingStrategy": "Estrategia de marketing detallada",
+            "referenceUrl": "https://google.com",
+            "suppliers": [
+              { "name": "Proveedor 1", "url": "https://example.com", "shippingDays": "5-7" }
+            ]
           }
         ]
       }`;
