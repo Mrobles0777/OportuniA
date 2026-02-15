@@ -9,17 +9,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.39.7",
+    "html2canvas": "1.4.1",
+    "jspdf": "2.5.1",
+    "lucide-react": "0.475.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "recharts": "3.7.0",
-    "lucide-react": "0.475.0",
-    "jspdf": "2.5.1",
-    "html2canvas": "1.4.1",
-    "@supabase/supabase-js": "2.39.7"
+    "recharts": "3.7.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "supabase": "^2.76.8",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
