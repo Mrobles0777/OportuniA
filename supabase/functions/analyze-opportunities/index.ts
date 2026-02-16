@@ -1,3 +1,4 @@
+/// <reference lib="deno.ns" />
 // Setup type definitions for built-in Supabase Runtime APIs
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 
@@ -42,11 +43,14 @@ Deno.serve(async (req) => {
         }
 
         const { action } = body
-        console.log(`[${Date.now() - start}ms] Ejecutando acción: ${action}`);
+        console.log(`[${Date.now() - start}ms] Acción recibida: "${action}"`);
 
         if (!OPENAI_API_KEY) {
-            console.error("Config Error: OPENAI_API_KEY no encontrado.");
-            return new Response(JSON.stringify({ error: "Config Error: OPENAI_API_KEY no encontrado en los secretos de Supabase." }), {
+            console.error("ERROR DE CONFIGURACIÓN: OPENAI_API_KEY no está definida en Supabase.");
+            return new Response(JSON.stringify({
+                error: "Config Error: OPENAI_API_KEY no encontrada.",
+                suggestion: "Debes ejecutar 'supabase secrets set OPENAI_API_KEY=tu_clave' en la terminal."
+            }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
                 status: 500
             })
@@ -98,21 +102,9 @@ Deno.serve(async (req) => {
         } else if (action === 'image-prompt') {
             const { title, context } = body
 
-            // Prompt engineered to act as a visual expert
-            prompt = `
-            Act as an expert prompt engineer for generative AI (Midjourney/Stable Diffusion).
-            
-            Goal: Create a detailed, high-quality image prompt based on this business opportunity:
-            Title: "${title}"
-            Context: "${context}"
-            
-            Instructions for the prompt you create:
-            1. Describe a photorealistic, modern, and professional scene representing this business.
-            2. Use keywords like: cinematic lighting, 8k, detailed texture, modern design, professional photography, depth of field.
-            3. Avoid text or words inside the image.
-            4. Keep it focused on the product/service or the result of the service.
-            5. The output must be ONLY the raw prompt text, nothing else.
-            `
+            // Prompt ultra-simplificado basado solo en el título (máxima compatibilidad)
+            prompt = `A high-quality, professional, photorealistic commercial photography scene representing: "${title}". 
+            Cinematic lighting, modern aesthetic, 8k, no text, no words.`
 
         } else {
             return new Response(JSON.stringify({ error: "Acción no válida." }), {
@@ -146,10 +138,24 @@ Deno.serve(async (req) => {
 
             clearTimeout(timeoutId);
 
+            console.log(`[${Date.now() - start}ms] OpenAI Status: ${response.status} ${response.statusText}`);
+
             if (!response.ok) {
                 const errorText = await response.text();
+                let errorDetails = errorText;
+                try {
+                    const errorJson = JSON.parse(errorText);
+                    errorDetails = errorJson.error?.message || errorText;
+                } catch (e) {
+                    // Not JSON, keep as text
+                }
+
                 console.error(`[${Date.now() - start}ms] OpenAI API Error (${response.status}):`, errorText);
-                return new Response(JSON.stringify({ error: `OpenAI API Error: ${response.status}`, details: errorText }), {
+                return new Response(JSON.stringify({
+                    error: `OpenAI API Error: ${response.status}`,
+                    details: errorDetails,
+                    raw: errorText
+                }), {
                     headers: { ...corsHeaders, "Content-Type": "application/json" },
                     status: response.status
                 })
@@ -203,8 +209,12 @@ Deno.serve(async (req) => {
         }
 
     } catch (error) {
-        console.error(`[${Date.now() - start}ms] Internal Server Error:`, error.message);
-        return new Response(JSON.stringify({ error: error.message }), {
+        console.error(`[${Date.now() - start}ms] Internal Server Error:`, error);
+        return new Response(JSON.stringify({
+            error: error.message,
+            stack: error.stack,
+            context: "Global catch in Edge Function"
+        }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 500,
         })

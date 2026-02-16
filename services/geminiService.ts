@@ -21,27 +21,33 @@ export const analyzeOpportunities = async (
     });
 
     clearTimeout(timeoutId);
-    console.log("Respuesta de Edge Function:", { data, error });
 
     if (error) {
-      console.error("Error en Edge Function (analyze):", error);
+      console.error("Error detallado de Edge Function:", error);
 
-      // Si error.context?.status existe, es un error de red o de la función
-      const status = error.status || (error as any).context?.status;
+      let errorMessage = "Ocurrió un error al analizar las oportunidades.";
 
-      if (status === 429) {
-        throw new Error("Cuota agotada en Gemini. Intenta de nuevo en un momento.");
+      // Si el error es una instancia de error de Supabase, intentamos obtener más contexto
+      if (error instanceof Error) {
+        errorMessage = error.message;
+
+        if (errorMessage.includes("Edge Function returned a non-2xx status code")) {
+          const status = (error as any).status || (error as any).context?.status;
+          console.log("Status detectado:", status);
+
+          if (status === 429) {
+            errorMessage = "Límite de OpenAI alcanzado (429). Verifica tu saldo o cuota.";
+          } else if (status === 401) {
+            errorMessage = "Error de API Key (401). Verifica que la clave de OpenAI sea correcta.";
+          } else if (status === 500) {
+            errorMessage = "Error Interno (500). Es posible que los 'secrets' no estén bien configurados o la IA falló.";
+          } else if (status) {
+            errorMessage = `Error del servidor (${status}). Por favor, revisa los logs de Supabase.`;
+          }
+        }
       }
 
-      if (status === 405) {
-        throw new Error("Error interno: Método no permitido.");
-      }
-
-      if (error.message === 'Failed to fetch') {
-        throw new Error("No se pudo conectar con la función de Supabase. Verifica tu conexión a internet o el estado del servicio.");
-      }
-
-      throw new Error(error.message || "Error al analizar oportunidades.");
+      throw new Error(errorMessage);
     }
 
     if (!data || !data.opportunities) {
@@ -73,7 +79,11 @@ export const generateMarketingContent = async (title: string, description: strin
     body: { action: 'marketing', title, description, strategy }
   });
 
-  if (error) throw error;
+  if (error) {
+    const status = error.status || (error as any).context?.status;
+    if (status === 429) throw new Error("Límite de OpenAI alcanzado. Por favor, reintenta en un momento.");
+    throw error;
+  }
   return data.content || '';
 };
 
@@ -82,6 +92,10 @@ export const generateImagePromptFromScript = async (title: string, context: stri
     body: { action: 'image-prompt', title, context }
   });
 
-  if (error) throw error;
+  if (error) {
+    const status = error.status || (error as any).context?.status;
+    if (status === 429) throw new Error("Límite de OpenAI alcanzado. No se pudo generar la imagen.");
+    throw error;
+  }
   return data.content?.trim() || '';
 };
