@@ -128,14 +128,30 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
       pdf.text('REPORTE ESTRATÉGICO DE NEGOCIO', pageWidth / 2, y, { align: 'center' });
       y += 15;
 
-      // Image (si existe)
+      // Image (si existe) - Mover a la parte superior si existe
       if (generatedImage) {
         try {
-          // Intentar cargar la imagen en el PDF
-          pdf.addImage(generatedImage, 'JPEG', margin, y, pageWidth - (margin * 2), 100);
-          y += 110;
+          // Función para convertir URL a Base64 para evitar problemas de CORS y carga en jsPDF
+          const getImageBase64 = async (url: string): Promise<string> => {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          };
+
+          const imgBase64 = await getImageBase64(generatedImage);
+          // Redimensionar imagen para que quepa bien (manteniendo aspecto aproximado 1:1 o 16:9)
+          const imgWidth = pageWidth - (margin * 2);
+          const imgHeight = 80; // Altura fija para la cabecera
+          pdf.addImage(imgBase64, 'JPEG', margin, y, imgWidth, imgHeight);
+          y += imgHeight + 10;
         } catch (e) {
           console.error("No se pudo cargar la imagen en el PDF", e);
+          y += 5; // Espacio extra si falla
         }
       }
 
