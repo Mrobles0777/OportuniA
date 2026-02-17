@@ -31,10 +31,10 @@ Deno.serve(async (req) => {
         const bodyText = await req.text()
         console.log(`[${Date.now() - start}ms] Body recibido:`, bodyText)
 
-        let body
+        let body: any
         try {
             body = JSON.parse(bodyText)
-        } catch (e) {
+        } catch (e: any) {
             console.error("Error al parsear JSON:", e.message)
             return new Response(JSON.stringify({ error: "Invalid JSON", details: e.message }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -44,6 +44,9 @@ Deno.serve(async (req) => {
 
         const { action } = body
         console.log(`[${Date.now() - start}ms] Acción recibida: "${action}"`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s para DALL-E 3 (es lento)
 
         if (!OPENAI_API_KEY) {
             console.error("ERROR DE CONFIGURACIÓN: OPENAI_API_KEY no está definida en Supabase.");
@@ -100,12 +103,49 @@ Deno.serve(async (req) => {
             const { title, description, strategy } = body
             prompt = `Genera un guion de ventas corto para: ${title}.`
         } else if (action === 'image-prompt') {
-            const { title, context } = body
+            const { title } = body
 
-            // Prompt ultra-simplificado basado solo en el título (máxima compatibilidad)
-            prompt = `A high-quality, professional, photorealistic commercial photography scene representing: "${title}". 
-            Cinematic lighting, modern aesthetic, 8k, no text, no words.`
+            console.log(`[${Date.now() - start}ms] Generando imagen con DALL-E 3 para: ${title}`);
 
+            try {
+                const imgResponse = await fetch(`https://api.openai.com/v1/images/generations`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "dall-e-3",
+                        prompt: `A professional, high-quality, photorealistic commercial product or business scene for: "${title}". Modern aesthetic, cinematic lighting, 8k, no text, no words.`,
+                        n: 1,
+                        size: "1024x1024",
+                        quality: "standard"
+                    }),
+                    signal: controller.signal
+                });
+
+                if (!imgResponse.ok) {
+                    const errorText = await imgResponse.text();
+                    console.error("DALL-E API Error:", errorText);
+                    return new Response(JSON.stringify({ error: "Error en DALL-E", details: errorText }), {
+                        headers: { ...corsHeaders, "Content-Type": "application/json" },
+                        status: imgResponse.status
+                    });
+                }
+
+                const imgData = await imgResponse.json();
+                const imageUrl = imgData.data?.[0]?.url;
+
+                return new Response(JSON.stringify({ content: imageUrl }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+            } catch (err) {
+                console.error("Fetch error in DALL-E:", err);
+                return new Response(JSON.stringify({ error: "Error de red en DALL-E" }), {
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    status: 500
+                });
+            }
         } else {
             return new Response(JSON.stringify({ error: "Acción no válida." }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -114,9 +154,6 @@ Deno.serve(async (req) => {
         }
 
         console.log(`[${Date.now() - start}ms] Llamando a OpenAI API (${OPENAI_MODEL})...`);
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 40000);
 
         try {
             const response = await fetch(`https://api.openai.com/v1/chat/completions`, {

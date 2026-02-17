@@ -50,18 +50,17 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
     setIsGeneratingImage(true);
     setGeneratedImage(null);
     try {
-      let prompt = await generateImagePromptFromScript(opportunity.title, "");
+      // Ahora el servicio devuelve directamente la URL de DALL-E 3
+      const imageUrl = await generateImagePromptFromScript(opportunity.title, "");
 
-      // Limpieza profunda del prompt para la URL
-      prompt = prompt.replace(/[^\w\s,.-]/gi, '').trim();
-
-      const seed = Math.floor(Math.random() * 1000000);
-      // Usamos una URL más robusta para Pollinations
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}&model=flux`;
-
-      setGeneratedImage(imageUrl);
+      if (imageUrl && imageUrl.startsWith('http')) {
+        setGeneratedImage(imageUrl);
+      } else {
+        throw new Error("No se recibió una URL válida de imagen");
+      }
     } catch (e) {
       console.error("Error al generar imagen:", e);
+      alert("No se pudo generar la imagen. Verifica tu cuota de OpenAI o los logs de Supabase.");
     } finally {
       setIsGeneratingImage(false);
     }
