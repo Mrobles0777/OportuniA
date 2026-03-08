@@ -126,8 +126,17 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
       // Image (si existe)
       if (generatedImage) {
         try {
-          // Intentar cargar la imagen en el PDF
-          pdf.addImage(generatedImage, 'JPEG', margin, y, pageWidth - (margin * 2), 100);
+          // Intentar cargar la imagen conviertiéndola primero a base64
+          const res = await fetch(generatedImage);
+          const blob = await res.blob();
+          const base64Img = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+
+          pdf.addImage(base64Img, 'JPEG', margin, y, pageWidth - (margin * 2), 100);
           y += 110;
         } catch (e) {
           console.error("No se pudo cargar la imagen en el PDF", e);
