@@ -22,12 +22,12 @@ export interface BusinessOpportunity {
   initialInvestment: number;
   expectedROI: string;
   difficulty: 'Baja' | 'Media' | 'Alta';
-  trends: string[];
-  pros: string[];
-  cons: string[];
+  trends?: string[];
+  pros?: string[];
+  cons?: string[];
   marketingStrategy: string;
   referenceUrl: string;
-  suppliers: Supplier[];
+  suppliers?: Supplier[];
 }
 
 export interface GroundingSource {

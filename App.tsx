@@ -12,7 +12,7 @@ import UserProfileView from './components/UserProfileView';
 const App: React.FC = () => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [investment, setInvestment] = useState<number>(50000); // Monto a invertir por búsqueda
-  const [location, setLocation] = useState<string>('México');
+  const [location, setLocation] = useState<string>('Santiago de Chile');
   const [loading, setLoading] = useState<boolean>(false);
   const [appInit, setAppInit] = useState<boolean>(true);
   const [analysisType, setAnalysisType] = useState<AnalysisType | null>(null);
@@ -25,34 +25,64 @@ const App: React.FC = () => {
 
   // Inicializar sesión de Supabase
   useEffect(() => {
+    let isMounted = true;
+
     const initSession = async () => {
-      const profile = await getCurrentUserProfile();
-      if (profile) {
-        setUser(profile);
-        // Sugerir por defecto la mitad del presupuesto o 50k
-        setInvestment(Math.min(profile.availableInvestment, 50000) || 50000);
+      try {
+        console.log("Iniciando sesión...");
+        const profile = await getCurrentUserProfile();
+        if (isMounted && profile) {
+          setUser(profile);
+          setInvestment(Math.min(profile.availableInvestment, 50000) || 50000);
+        }
+      } catch (err) {
+        console.error("Error crítico en initSession:", err);
+      } finally {
+        if (isMounted) setAppInit(false);
       }
-      setAppInit(false);
     };
+
+    // Timeout de seguridad global para la carga de la app (10 segundos)
+    const safetyTimeout = setTimeout(() => {
+      if (appInit && isMounted) {
+        console.warn("Fallo de carga: Activando timeout de seguridad");
+        setAppInit(false);
+      }
+    }, 10000);
 
     initSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Evento Auth:", event);
       if (event === 'SIGNED_IN' && session) {
         const profile = await getCurrentUserProfile();
-        if (profile) {
+        if (isMounted && profile) {
           setUser(profile);
         }
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setResult(null);
-        setError(null);
-        setView('main');
-        setShowLogoutConfirm(false);
+        if (isMounted) {
+          setUser(null);
+          setResult(null);
+          setError(null);
+          setView('main');
+          setShowLogoutConfirm(false);
+          // Limpiar caché local de sesión para evitar estados corruptos
+          try {
+            for (const key in localStorage) {
+              if (key.startsWith('sb-')) localStorage.removeItem(key);
+            }
+          } catch (e) {
+            console.error("Error limpiando localStorage:", e);
+          }
+        }
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Geolocalización inicial
@@ -95,8 +125,10 @@ const App: React.FC = () => {
     setAnalysisType(type);
     setError(null);
     setView('main');
+    console.log("Ejecutando handleSearch...");
 
     try {
+      console.log("Llamando a analyzeOpportunities...");
       // Usar una bandera de cancelación simple para esta implementación
       // En una implementación real más compleja se usaría AbortController
       const data = await analyzeOpportunities(investment, location, type);
@@ -104,7 +136,12 @@ const App: React.FC = () => {
       // Solo actualizar si sigue cargando (no se detuvo manualmente)
       setLoading(prev => {
         if (prev) {
-          setResult(data);
+          if (data && data.opportunities && Array.isArray(data.opportunities)) {
+            setResult(data);
+          } else {
+            console.error("Datos recibidos inválidos:", data);
+            setError("La respuesta del servidor no tiene el formato correcto.");
+          }
         }
         return false;
       });
@@ -380,7 +417,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between mb-8 px-4">
-                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">{result.opportunities.length} Sugerencias para invertir ${investment.toLocaleString()} {result.currencyCode}</h3>
+                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-widest">{result.opportunities?.length || 0} Sugerencias para invertir ${investment.toLocaleString()} {result.currencyCode}</h3>
                   <button
                     onClick={() => {
                       setResult(null);
@@ -394,7 +431,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {result.opportunities.map((opp) => (
+                  {result.opportunities?.map((opp) => (
                     <OpportunityCard
                       key={opp.id}
                       opportunity={opp}

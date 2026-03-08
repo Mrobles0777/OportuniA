@@ -48,14 +48,19 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
 
   const handleGenerateImage = async () => {
     setIsGeneratingImage(true);
+    setGeneratedImage(null);
     try {
-      const prompt = await generateImagePromptFromScript(marketingContent || opportunity.description);
-      // Usamos Pollinations AI para generar la imagen basada en el prompt de Gemini
-      const seed = Math.floor(Math.random() * 1000000);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true&seed=${seed}`;
-      setGeneratedImage(imageUrl);
+      // Ahora el servicio devuelve directamente la URL de DALL-E 3
+      const imageUrl = await generateImagePromptFromScript(opportunity.title, "");
+
+      if (imageUrl && imageUrl.startsWith('http')) {
+        setGeneratedImage(imageUrl);
+      } else {
+        throw new Error("No se recibió una URL válida de imagen");
+      }
     } catch (e) {
-      console.error(e);
+      console.error("Error al generar imagen:", e);
+      alert("No se pudo generar la imagen. Verifica tu cuota de OpenAI o los logs de Supabase.");
     } finally {
       setIsGeneratingImage(false);
     }
@@ -123,23 +128,30 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
       pdf.text('REPORTE ESTRATÉGICO DE NEGOCIO', pageWidth / 2, y, { align: 'center' });
       y += 15;
 
-      // Image (si existe)
+      // Image (si existe) - Mover a la parte superior si existe
       if (generatedImage) {
         try {
-          // Intentar cargar la imagen conviertiéndola primero a base64
-          const res = await fetch(generatedImage);
-          const blob = await res.blob();
-          const base64Img = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
-          });
+          // Función para convertir URL a Base64 para evitar problemas de CORS y carga en jsPDF
+          const getImageBase64 = async (url: string): Promise<string> => {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            return new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          };
 
-          pdf.addImage(base64Img, 'JPEG', margin, y, pageWidth - (margin * 2), 100);
-          y += 110;
+          const imgBase64 = await getImageBase64(generatedImage);
+          // Redimensionar imagen para que quepa bien (manteniendo aspecto aproximado 1:1 o 16:9)
+          const imgWidth = pageWidth - (margin * 2);
+          const imgHeight = 80; // Altura fija para la cabecera
+          pdf.addImage(imgBase64, 'JPEG', margin, y, imgWidth, imgHeight);
+          y += imgHeight + 10;
         } catch (e) {
           console.error("No se pudo cargar la imagen en el PDF", e);
+          y += 5; // Espacio extra si falla
         }
       }
 
@@ -268,7 +280,7 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
               </section>
 
               <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {opportunity.suppliers.map((supplier, idx) => (
+                {opportunity.suppliers?.map((supplier, idx) => (
                   <div key={idx} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col hover:border-indigo-200 transition-colors">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-black text-slate-900 uppercase tracking-tighter">{supplier.name}</span>
