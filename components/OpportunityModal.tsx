@@ -131,24 +131,52 @@ const OpportunityModal: React.FC<Props> = ({ opportunity, onClose, user, onUpdat
       // Image (si existe) - Mover a la parte superior si existe
       if (generatedImage) {
         try {
-          // Función para convertir URL a Base64 para evitar problemas de CORS y carga en jsPDF
-          const getImageBase64 = async (url: string): Promise<string> => {
-            const response = await fetch(url);
-            const blob = await response.blob();
+          // Función para convertir URL a Base64 y formato correcto (evitando problemas de MIME type y CORS)
+          const getImageDataUrl = async (url: string): Promise<{ dataUrl: string, format: string }> => {
             return new Promise((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result as string);
-              reader.onerror = reject;
-              reader.readAsDataURL(blob);
+              const img = new Image();
+              img.crossOrigin = 'Anonymous';
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  ctx.fillStyle = '#FFFFFF';
+                  ctx.fillRect(0, 0, canvas.width, canvas.height);
+                  ctx.drawImage(img, 0, 0);
+                  resolve({ dataUrl: canvas.toDataURL('image/jpeg', 0.9), format: 'JPEG' });
+                } else {
+                  reject(new Error("Canvas context error"));
+                }
+              };
+              img.onerror = async () => {
+                try {
+                  // Fallback: usar fetch de blob si falla canvas
+                  const response = await fetch(url);
+                  const blob = await response.blob();
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    const base64data = reader.result as string;
+                    const format = base64data.includes('image/png') ? 'PNG' : 'JPEG';
+                    resolve({ dataUrl: base64data, format });
+                  };
+                  reader.readAsDataURL(blob);
+                } catch (e) {
+                  reject(e);
+                }
+              };
+              img.src = url;
             });
           };
 
-          const imgBase64 = await getImageBase64(generatedImage);
-          // Redimensionar imagen para que quepa bien (manteniendo aspecto aproximado 1:1 o 16:9)
-          const imgWidth = pageWidth - (margin * 2);
-          const imgHeight = 80; // Altura fija para la cabecera
-          pdf.addImage(imgBase64, 'JPEG', margin, y, imgWidth, imgHeight);
-          y += imgHeight + 10;
+          const imgResult = await getImageDataUrl(generatedImage);
+
+          // Imagen centrada y manteniendo proporción cuadrada
+          const imgSize = 100;
+          const imgX = (pageWidth - imgSize) / 2;
+          pdf.addImage(imgResult.dataUrl, imgResult.format, imgX, y, imgSize, imgSize);
+          y += imgSize + 10;
         } catch (e) {
           console.error("No se pudo cargar la imagen en el PDF", e);
           y += 5; // Espacio extra si falla
